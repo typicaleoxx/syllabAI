@@ -7,6 +7,7 @@ import Timeline from "./components/Timeline";
 import RiskPanel from "./components/RiskPanel";
 import Loader from "./components/Loader";
 import Dropzone from "./components/Dropzone";
+import NextSevenDays from "./components/NextSevenDays";
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -151,6 +152,9 @@ export default function Home() {
                 sub={daysToNext !== null && daysToNext <= 0 ? "Overdue!" : "Keep an eye on this"}
               />
             </div>
+
+            {/* Next 7 Days */}
+            <NextSevenDays assignments={allAssignments} />
 
             {/* Timeline + Risk panel */}
             <div className="flex gap-4">
