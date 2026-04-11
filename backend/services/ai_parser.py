@@ -17,8 +17,8 @@ if not _api_key:
 _client = Groq(api_key=_api_key)
 
 # --- Rate limiting (protect free tier) ---
-_REQUEST_WINDOW = 60        # seconds
-_MAX_REQUESTS   = 25        # per window
+_REQUEST_WINDOW = 60  # seconds
+_MAX_REQUESTS = 25  # per window
 _timestamps: deque = deque()
 
 
@@ -48,8 +48,7 @@ def _sanitize(text: str) -> str:
     text = text[:40_000]
     if _INJECTION_RE.search(text):
         text = "\n".join(
-            line for line in text.splitlines()
-            if not _INJECTION_RE.search(line)
+            line for line in text.splitlines() if not _INJECTION_RE.search(line)
         )
     return text
 
@@ -63,8 +62,16 @@ def _parse(raw: str) -> dict:
     try:
         data = json.loads(match.group())
         return {
-            "assignments": data.get("assignments", []) if isinstance(data.get("assignments"), list) else [],
-            "contacts": data.get("contacts", []) if isinstance(data.get("contacts"), list) else [],
+            "assignments": (
+                data.get("assignments", [])
+                if isinstance(data.get("assignments"), list)
+                else []
+            ),
+            "contacts": (
+                data.get("contacts", [])
+                if isinstance(data.get("contacts"), list)
+                else []
+            ),
         }
     except json.JSONDecodeError:
         return {"assignments": [], "contacts": []}
@@ -72,6 +79,7 @@ def _parse(raw: str) -> dict:
 
 def _infer_risk(due: str, weight: float | None = None) -> RiskLevel:
     from datetime import date
+
     # Overdue always HIGH
     try:
         if (date.fromisoformat(due) - date.today()).days < 0:
@@ -81,15 +89,19 @@ def _infer_risk(due: str, weight: float | None = None) -> RiskLevel:
 
     # Weight-based when available
     if weight is not None:
-        if weight >= 30:  return RiskLevel.HIGH
-        if weight >= 10:  return RiskLevel.MEDIUM
+        if weight >= 30:
+            return RiskLevel.HIGH
+        if weight >= 10:
+            return RiskLevel.MEDIUM
         return RiskLevel.LOW
 
     # Fallback to date-based
     try:
         days = (date.fromisoformat(due) - date.today()).days
-        if days <= 7:  return RiskLevel.HIGH
-        if days <= 21: return RiskLevel.MEDIUM
+        if days <= 7:
+            return RiskLevel.HIGH
+        if days <= 21:
+            return RiskLevel.MEDIUM
         return RiskLevel.LOW
     except ValueError:
         return RiskLevel.MEDIUM
@@ -115,9 +127,9 @@ def extract_assignments(raw_text: str) -> tuple[list[Assignment], list[Contact]]
         "- Extract the grade weight (%) for each item if stated in the document.\n"
         "- Extract the course code (e.g. 'EGN 2440', 'COP 4530') from the document header.\n"
         "- Extract all instructors and TAs: name, role, email, office hours.\n"
-        "- If nothing qualifies return: {\"assignments\":[], \"contacts\":[]}\n"
-        "Output format: {\"assignments\":[{\"name\":\"...\",\"due\":\"YYYY-MM-DD\",\"weight\":26.67,\"course\":\"EGN 2440\"}],"
-        "\"contacts\":[{\"name\":\"Dr. Smith\",\"role\":\"Professor\",\"email\":\"smith@uni.edu\",\"office_hours\":\"MWF 2-3pm\"}]}\n"
+        '- If nothing qualifies return: {"assignments":[], "contacts":[]}\n'
+        'Output format: {"assignments":[{"name":"...","due":"YYYY-MM-DD","weight":26.67,"course":"EGN 2440"}],'
+        '"contacts":[{"name":"Dr. Smith","role":"Professor","email":"smith@uni.edu","office_hours":"MWF 2-3pm"}]}\n'
         "weight is a number or null. email and office_hours are empty string if not found."
     )
 
@@ -126,7 +138,7 @@ def extract_assignments(raw_text: str) -> tuple[list[Assignment], list[Contact]]
             model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": system},
-                {"role": "user",   "content": f"<document>\n{text}\n</document>"},
+                {"role": "user", "content": f"<document>\n{text}\n</document>"},
             ],
             temperature=0,
             max_tokens=1536,
@@ -143,26 +155,35 @@ def extract_assignments(raw_text: str) -> tuple[list[Assignment], list[Contact]]
             raw_weight = item.get("weight")
             weight = float(raw_weight) if raw_weight is not None else None
             due = str(item.get("due", ""))
-            assignments.append(Assignment(
-                name=str(item.get("name", ""))[:200],
-                due=due,
-                weight=weight,
-                course=str(item.get("course", ""))[:50],
-                risk=_infer_risk(due, weight),
-            ))
+            assignments.append(
+                Assignment(
+                    name=str(item.get("name", ""))[:200],
+                    due=due,
+                    weight=weight,
+                    course=str(item.get("course", ""))[:50],
+                    risk=_infer_risk(due, weight),
+                )
+            )
         except Exception:
             continue
 
     contacts: list[Contact] = []
     for c in parsed["contacts"]:
         try:
-            contacts.append(Contact(
-                name=str(c.get("name", ""))[:100],
-                role=str(c.get("role", ""))[:50],
-                email=str(c.get("email", ""))[:100],
-                office_hours=str(c.get("office_hours", ""))[:200],
-            ))
+            contacts.append(
+                Contact(
+                    name=str(c.get("name", ""))[:100],
+                    role=str(c.get("role", ""))[:50],
+                    email=str(c.get("email", ""))[:100],
+                    office_hours=str(c.get("office_hours", ""))[:200],
+                )
+            )
         except Exception:
             continue
 
     return assignments, contacts
+
+
+def get_groq_client():
+    """Export the Groq client for use in other modules."""
+    return _client

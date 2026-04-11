@@ -5,7 +5,6 @@ import { uploadSyllabus, parseSyllabusText } from "@/lib/api";
 import { Course, Assignment } from "@/types";
 import { downloadICS } from "@/lib/ics";
 import { Tone, TONE_OPTIONS } from "@/lib/tone";
-import Timeline from "./components/Timeline";
 import Loader from "./components/Loader";
 import Dropzone from "./components/Dropzone";
 import ContactCards from "./components/ContactCards";
@@ -13,6 +12,7 @@ import StatusCard from "./components/StatusCard";
 import TodayFocus from "./components/TodayFocus";
 import WeeklyPlan from "./components/WeeklyPlan";
 import WhatsComing from "./components/WhatsComing";
+import Chat from "./components/Chat";
 
 function assignmentKey(a: Assignment) {
   return `${a.name}|${a.due}`;
@@ -22,7 +22,7 @@ export default function Home() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tone, setTone] = useState<Tone>("practical");
+  const [tone, setTone] = useState<Tone>("genz");
   const [completed, setCompleted] = useState<Set<string>>(new Set());
   const addInputRef = useRef<HTMLInputElement>(null);
 
@@ -178,62 +178,64 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto bg-gray-50/50">
-        {loading && <Loader tone={tone} />}
+      {/* Body with Chat Sidebar */}
+      <div className="flex-1 overflow-hidden flex bg-gray-50/50">
+        {/* Main content */}
+        <div className="flex-1 overflow-y-auto">
+          {loading && <Loader tone={tone} />}
 
-        {!loading && !hasCourses && (
-          <>
-            <Dropzone
-              onFile={handleFile}
-              onText={handleText}
-              loading={loading}
-            />
-            {error && (
-              <p className="text-center text-sm text-red-500 -mt-4 pb-4">
-                {error}
-              </p>
-            )}
-          </>
-        )}
+          {!loading && !hasCourses && (
+            <>
+              <Dropzone
+                onFile={handleFile}
+                onText={handleText}
+                loading={loading}
+              />
+              {error && (
+                <p className="text-center text-sm text-red-500 -mt-4 pb-4">
+                  {error}
+                </p>
+              )}
+            </>
+          )}
 
-        {!loading && hasCourses && (
-          <div className="p-8 space-y-5 max-w-5xl mx-auto">
-            {error && <p className="text-sm text-red-500">{error}</p>}
+          {!loading && hasCourses && (
+            <div className="p-8 space-y-5 max-w-4xl">
+              {error && <p className="text-sm text-red-500">{error}</p>}
 
-            {/* Status */}
-            <StatusCard assignments={allAssignments} tone={tone} />
+              {/* Status */}
+              <StatusCard assignments={allAssignments} tone={tone} />
 
-            {/* Today + What's Coming */}
-            <div className="grid grid-cols-2 gap-5">
-              <TodayFocus
+              {/* Today + What's Coming */}
+              <div className="grid grid-cols-2 gap-5">
+                <TodayFocus
+                  assignments={allAssignments}
+                  tone={tone}
+                  completed={completed}
+                  onToggle={toggleComplete}
+                  assignmentKey={assignmentKey}
+                />
+                <WhatsComing assignments={allAssignments} tone={tone} />
+              </div>
+
+              {/* Weekly Game Plan */}
+              <WeeklyPlan
                 assignments={allAssignments}
                 tone={tone}
                 completed={completed}
-                onToggle={toggleComplete}
                 assignmentKey={assignmentKey}
               />
-              <WhatsComing assignments={allAssignments} tone={tone} />
+
+              {/* Contact cards */}
+              <ContactCards contacts={allContacts} />
             </div>
+          )}
+        </div>
 
-            {/* Weekly Game Plan */}
-            <WeeklyPlan
-              assignments={allAssignments}
-              tone={tone}
-              completed={completed}
-              assignmentKey={assignmentKey}
-            />
-
-            {/* Full timeline */}
-            <Timeline
-              assignments={allAssignments}
-              completed={completed}
-              onToggle={toggleComplete}
-              assignmentKey={assignmentKey}
-            />
-
-            {/* Contact cards */}
-            <ContactCards contacts={allContacts} />
+        {/* Chat Sidebar */}
+        {hasCourses && (
+          <div className="w-80 border-l border-gray-100 bg-white overflow-hidden flex flex-col">
+            <Chat tone={tone} />
           </div>
         )}
       </div>

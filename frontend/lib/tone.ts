@@ -1,9 +1,9 @@
-export type Tone = "direct" | "practical" | "supportive";
+export type Tone = "direct" | "practical" | "genz";
 
 export const TONE_OPTIONS: { value: Tone; label: string }[] = [
   { value: "direct", label: "Direct" },
   { value: "practical", label: "Practical" },
-  { value: "supportive", label: "Supportive" },
+  { value: "genz", label: "Gen-Z" },
 ];
 
 export const TONE = {
@@ -15,22 +15,22 @@ export const TONE = {
   status_good: {
     direct: "No critical deadlines this week.",
     practical: "You have breathing room this week.",
-    supportive: "You're in good shape this week.",
+    genz: "you're actually chilling this week fr fr",
   },
   status_heavy: {
     direct: "Multiple high-priority items due this week.",
     practical: "This is a heavy week. Plan ahead.",
-    supportive: "This week has several important deadlines. You can handle it.",
+    genz: "not gonna lie this week is lowkey packed bro",
   },
   today_clear: {
     direct: "No tasks due today.",
     practical: "Nothing due today.",
-    supportive: "You have a clear day today.",
+    genz: "nothing due today my guy",
   },
   today_header: {
     direct: "Today",
     practical: "Today's tasks",
-    supportive: "What you're working on today",
+    genz: "what you should lowkey be doing today",
   },
   insight: {
     direct: (name: string, weight: number | null | undefined) =>
@@ -49,17 +49,17 @@ export const TONE = {
   next_week_clear: {
     direct: "Next week is light.",
     practical: "Next week looks manageable.",
-    supportive: "Next week should be easier.",
+    genz: "next week lowkey looks chill ngl",
   },
   next_week_heavy: {
     direct: "Next week has major deadlines. Prepare now.",
     practical: "Next week is packed. Start preparing today.",
-    supportive: "Next week has a lot going on. Get a head start this week.",
+    genz: "next week is gonna hit different bro, prep now or get cooked",
   },
   plan_light: {
     direct: "Light day. Review or get ahead.",
     practical: "Use this time to catch up or prepare for next week.",
-    supportive: "A good day to review material or work ahead.",
+    genz: "free day fr, get ahead or just chill",
   },
 };
 
