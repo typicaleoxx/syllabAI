@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { uploadSyllabus } from "@/lib/api";
+import { uploadSyllabus, parseSyllabusText } from "@/lib/api";
 import { Course, Assignment } from "@/types";
 import { downloadICS } from "@/lib/ics";
 import { Tone, TONE_OPTIONS } from "@/lib/tone";
@@ -14,25 +14,61 @@ import TodayFocus from "./components/TodayFocus";
 import WeeklyPlan from "./components/WeeklyPlan";
 import WhatsComing from "./components/WhatsComing";
 
+function assignmentKey(a: Assignment) {
+  return `${a.name}|${a.due}`;
+}
+
 export default function Home() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tone, setTone] = useState<Tone>("chill");
+  const [tone, setTone] = useState<Tone>("practical");
+  const [completed, setCompleted] = useState<Set<string>>(new Set());
   const addInputRef = useRef<HTMLInputElement>(null);
+
+  function toggleComplete(key: string) {
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
 
   async function handleFile(file: File) {
     setLoading(true);
     setError(null);
     try {
       const result = await uploadSyllabus(file);
-      const newCourse: Course = {
-        id: `${Date.now()}`,
-        fileName: file.name,
-        assignments: result.assignments,
-        contacts: result.contacts ?? [],
-      };
-      setCourses((prev) => [...prev, newCourse]);
+      setCourses((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}`,
+          fileName: file.name,
+          assignments: result.assignments,
+          contacts: result.contacts ?? [],
+        },
+      ]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleText(text: string) {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await parseSyllabusText(text);
+      setCourses((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}`,
+          fileName: "Pasted syllabus",
+          assignments: result.assignments,
+          contacts: result.contacts ?? [],
+        },
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -69,14 +105,12 @@ export default function Home() {
                 key={opt.value}
                 type="button"
                 onClick={() => setTone(opt.value)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   tone === opt.value
                     ? "bg-white text-gray-800 shadow-sm"
                     : "text-gray-400 hover:text-gray-600"
-                }`}
-              >
-                <span>{opt.emoji}</span>
-                <span>{opt.label}</span>
+                }`}>
+                {opt.label}
               </button>
             ))}
           </div>
@@ -88,14 +122,12 @@ export default function Home() {
                 {courses.map((c) => (
                   <span
                     key={c.id}
-                    className="flex items-center gap-1.5 text-xs bg-indigo-50 text-indigo-600 font-medium px-2.5 py-1 rounded-full"
-                  >
+                    className="flex items-center gap-1.5 text-xs bg-indigo-50 text-indigo-600 font-medium px-2.5 py-1 rounded-full">
                     {c.fileName.replace(".pdf", "")}
                     <button
                       type="button"
                       onClick={() => removeCourse(c.id)}
-                      className="text-indigo-300 hover:text-indigo-600 transition-colors leading-none"
-                    >
+                      className="text-indigo-300 hover:text-indigo-600 transition-colors leading-none">
                       ×
                     </button>
                   </span>
@@ -106,10 +138,18 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => downloadICS(allAssignments)}
-                className="text-xs text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                className="text-xs text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                  />
                 </svg>
                 Export .ics
               </button>
@@ -118,8 +158,7 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => addInputRef.current?.click()}
-                className="text-xs text-indigo-600 hover:text-indigo-500 font-medium border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors"
-              >
+                className="text-xs text-indigo-600 hover:text-indigo-500 font-medium border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors">
                 + Add syllabus
               </button>
               <input
@@ -145,8 +184,16 @@ export default function Home() {
 
         {!loading && !hasCourses && (
           <>
-            <Dropzone onFile={handleFile} loading={loading} />
-            {error && <p className="text-center text-sm text-red-500 -mt-4 pb-4">{error}</p>}
+            <Dropzone
+              onFile={handleFile}
+              onText={handleText}
+              loading={loading}
+            />
+            {error && (
+              <p className="text-center text-sm text-red-500 -mt-4 pb-4">
+                {error}
+              </p>
+            )}
           </>
         )}
 
@@ -154,20 +201,36 @@ export default function Home() {
           <div className="p-8 space-y-5 max-w-5xl mx-auto">
             {error && <p className="text-sm text-red-500">{error}</p>}
 
-            {/* Status — "are you good?" */}
+            {/* Status */}
             <StatusCard assignments={allAssignments} tone={tone} />
 
-            {/* Today's Focus + What's Coming */}
+            {/* Today + What's Coming */}
             <div className="grid grid-cols-2 gap-5">
-              <TodayFocus assignments={allAssignments} tone={tone} />
+              <TodayFocus
+                assignments={allAssignments}
+                tone={tone}
+                completed={completed}
+                onToggle={toggleComplete}
+                assignmentKey={assignmentKey}
+              />
               <WhatsComing assignments={allAssignments} tone={tone} />
             </div>
 
             {/* Weekly Game Plan */}
-            <WeeklyPlan assignments={allAssignments} tone={tone} />
+            <WeeklyPlan
+              assignments={allAssignments}
+              tone={tone}
+              completed={completed}
+              assignmentKey={assignmentKey}
+            />
 
             {/* Full timeline */}
-            <Timeline assignments={allAssignments} />
+            <Timeline
+              assignments={allAssignments}
+              completed={completed}
+              onToggle={toggleComplete}
+              assignmentKey={assignmentKey}
+            />
 
             {/* Contact cards */}
             <ContactCards contacts={allContacts} />

@@ -1,62 +1,65 @@
-export type Tone = "serious" | "chill" | "genz";
+export type Tone = "direct" | "practical" | "supportive";
 
-export const TONE_OPTIONS: { value: Tone; label: string; emoji: string }[] = [
-  { value: "serious", label: "Serious", emoji: "🧠" },
-  { value: "chill",   label: "Chill",   emoji: "😎" },
-  { value: "genz",    label: "Gen-Z",   emoji: "🔥" },
+export const TONE_OPTIONS: { value: Tone; label: string }[] = [
+  { value: "direct", label: "Direct" },
+  { value: "practical", label: "Practical" },
+  { value: "supportive", label: "Supportive" },
 ];
 
 export const TONE = {
   loading: {
-    serious: "Analyzing your syllabus...",
-    chill:   "Getting your plan ready...",
-    genz:    "lowkey scanning your syllabus rn",
+    direct: "Analyzing your syllabus...",
+    practical: "Processing your syllabus...",
+    supportive: "Let me organize your syllabus...",
   },
   status_good: {
-    serious: "No critical deadlines this week. Stay ahead of schedule.",
-    chill:   "You're in a safe zone this week.",
-    genz:    "you're actually chilling rn fr fr",
+    direct: "No critical deadlines this week.",
+    practical: "You have breathing room this week.",
+    supportive: "You're in good shape this week.",
   },
   status_heavy: {
-    serious: "This week contains multiple high-priority assessments. Plan carefully.",
-    chill:   "This week is heavy, plan carefully.",
-    genz:    "not gonna lie this week is a lot",
+    direct: "Multiple high-priority items due this week.",
+    practical: "This is a heavy week. Plan ahead.",
+    supportive: "This week has several important deadlines. You can handle it.",
   },
   today_clear: {
-    serious: "No urgent tasks due today.",
-    chill:   "Nothing pressing today, you're good.",
-    genz:    "nothing due today, you're in your bag",
+    direct: "No tasks due today.",
+    practical: "Nothing due today.",
+    supportive: "You have a clear day today.",
   },
   today_header: {
-    serious: "Today's Priorities",
-    chill:   "Focus on this today",
-    genz:    "lowkey what you should do today",
+    direct: "Today",
+    practical: "Today's tasks",
+    supportive: "What you're working on today",
   },
   insight: {
-    serious: (name: string, weight: number | null | undefined) =>
-      weight ? `${name} accounts for ${weight}% of your grade. Starting today is advised.`
-             : `${name} is coming up, allocate time now.`,
-    chill: (name: string, weight: number | null | undefined) =>
-      weight ? `${name} is ${weight}% of your grade, worth putting time into.`
-             : `${name} is coming up soon, get a head start.`,
-    genz: (name: string, weight: number | null | undefined) =>
-      weight ? `${name} is ${weight}% of your grade bro, don't sleep on this`
-             : `${name} is literally coming up, do something about it`,
+    direct: (name: string, weight: number | null | undefined) =>
+      weight
+        ? `${name} is ${weight}% of your grade.`
+        : `${name} needs your attention soon.`,
+    practical: (name: string, weight: number | null | undefined) =>
+      weight
+        ? `${name} counts for ${weight}% of your grade.`
+        : `Start working on ${name} soon.`,
+    supportive: (name: string, weight: number | null | undefined) =>
+      weight
+        ? `${name} is ${weight}% of your overall grade. You've got this.`
+        : `Take time today or tomorrow to get started on ${name}.`,
   },
   next_week_clear: {
-    serious: "Next week appears manageable.",
-    chill:   "Next week looks pretty light.",
-    genz:    "next week lowkey looks chill ngl",
+    direct: "Next week is light.",
+    practical: "Next week looks manageable.",
+    supportive: "Next week should be easier.",
   },
   next_week_heavy: {
-    serious: "Next week contains significant assessments. Begin preparation this week.",
-    chill:   "Heads up, next week is looking busy.",
-    genz:    "next week is gonna hit different, prep now",
+    direct: "Next week has major deadlines. Prepare now.",
+    practical: "Next week is packed. Start preparing today.",
+    supportive: "Next week has a lot going on. Get a head start this week.",
   },
   plan_light: {
-    serious: "Light day, use this time to review material.",
-    chill:   "Light day, maybe get ahead?",
-    genz:    "free day, get ahead or just vibe",
+    direct: "Light day. Review or get ahead.",
+    practical: "Use this time to catch up or prepare for next week.",
+    supportive: "A good day to review material or work ahead.",
   },
 };
 

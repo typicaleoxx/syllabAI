@@ -7,46 +7,55 @@ function parseLocalDate(d: string) {
 }
 
 function daysUntil(d: string) {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   return Math.ceil((parseLocalDate(d).getTime() - today.getTime()) / 86400000);
 }
 
 const RISK_DOT: Record<string, string> = {
-  HIGH: "bg-red-400", MEDIUM: "bg-amber-400", LOW: "bg-green-400",
+  HIGH: "bg-red-400",
+  MEDIUM: "bg-amber-400",
+  LOW: "bg-green-400",
 };
 
-interface Props { assignments: Assignment[]; tone: Tone; }
+interface Props {
+  assignments: Assignment[];
+  tone: Tone;
+}
 
 export default function WhatsComing({ assignments, tone }: Props) {
   const nextWeek = assignments
-    .filter((a) => { const d = daysUntil(a.due); return d >= 7 && d <= 14; })
+    .filter((a) => {
+      const d = daysUntil(a.due);
+      return d >= 7 && d <= 14;
+    })
     .sort((a, b) => daysUntil(a.due) - daysUntil(b.due));
 
   const highCount = nextWeek.filter((a) => a.risk === "HIGH").length;
   const isHeavy = highCount >= 2;
 
   const headers: Record<Tone, string> = {
-    serious: "What's Coming",
-    chill: "On the horizon",
-    genz: "what's coming up next week",
+    direct: "Next Week",
+    practical: "What's Coming",
+    supportive: "Looking Ahead",
   };
 
   const emptyMsg: Record<Tone, string> = {
-    serious: "Nothing significant in the next two weeks.",
-    chill:   "Nothing big coming up, enjoy the breather.",
-    genz:    "next week is looking chill ngl",
+    direct: "Nothing significant next week.",
+    practical: "Nothing major coming up next week.",
+    supportive: "Next week is looking clear.",
   };
 
   const heavyMsg: Record<Tone, string> = {
-    serious: `${highCount} high-priority items next week. Begin preparation now.`,
-    chill:   "Heads up, next week is looking busy. Start prepping soon.",
-    genz:    "next week is gonna hit different, prep now not later",
+    direct: `${highCount} high-priority items next week. Start preparing now.`,
+    practical: "Next week has several important deadlines. Begin prep today.",
+    supportive: `Next week will be busy with ${highCount} important items. You have time to prepare.`,
   };
 
   const lightMsg: Record<Tone, string> = {
-    serious: "Next week appears manageable. Stay consistent.",
-    chill:   "Next week looks pretty light, you've got this.",
-    genz:    "next week lowkey looks chill ngl",
+    direct: "Next week is manageable.",
+    practical: "Next week looks lighter than this one.",
+    supportive: "Next week should be easier.",
   };
 
   return (
@@ -62,7 +71,8 @@ export default function WhatsComing({ assignments, tone }: Props) {
         </div>
       ) : (
         <>
-          <div className={`px-6 py-3 text-sm font-medium ${isHeavy ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
+          <div
+            className={`px-6 py-3 text-sm font-medium ${isHeavy ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
             {isHeavy ? heavyMsg[tone] : lightMsg[tone]}
           </div>
 
@@ -71,10 +81,14 @@ export default function WhatsComing({ assignments, tone }: Props) {
               const d = daysUntil(a.due);
               return (
                 <li key={i} className="px-6 py-3.5 flex items-center gap-3">
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${RISK_DOT[a.risk]}`} />
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${RISK_DOT[a.risk]}`}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-medium text-gray-800 truncate">{a.name}</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {a.name}
+                      </p>
                       {a.course && (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-500 uppercase tracking-wide shrink-0">
                           {a.course}
@@ -82,7 +96,9 @@ export default function WhatsComing({ assignments, tone }: Props) {
                       )}
                     </div>
                   </div>
-                  <span className="text-xs text-gray-400 shrink-0">in {d} days</span>
+                  <span className="text-xs text-gray-400 shrink-0">
+                    in {d} days
+                  </span>
                 </li>
               );
             })}
