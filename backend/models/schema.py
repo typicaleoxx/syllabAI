@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from enum import Enum
 
 
@@ -13,6 +13,7 @@ class Assignment(BaseModel):
     name: str
     due: str
     risk: RiskLevel
+    weight: Optional[float] = None  # grade percentage e.g. 26.67
 
 
 class UploadResponse(BaseModel):
