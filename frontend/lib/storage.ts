@@ -59,3 +59,14 @@ export function addCalendarTask(task: CalendarTask) {
   const tasks = loadCalendarTasks();
   saveCalendarTasks([task, ...tasks]);
 }
+
+export function clearCourses() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(COURSES_KEY);
+}
+
+export function clearCalendarTasks() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(CALENDAR_TASKS_KEY);
+  emitCalendarUpdate();
+}

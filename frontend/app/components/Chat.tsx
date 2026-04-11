@@ -3,9 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Tone } from "@/lib/tone";
 import { addCalendarTask } from "@/lib/storage";
-
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
+import { getApiBaseUrl } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -113,7 +111,7 @@ export default function Chat({ tone }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/chat`, {
+      const res = await fetch(`${getApiBaseUrl()}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -135,7 +133,7 @@ export default function Chat({ tone }: Props) {
         {
           id: `error-${Date.now()}`,
           role: "ai",
-          text: "oops something broke bro, try again",
+          text: "couldn't reach chat API. set NEXT_PUBLIC_API_BASE_URL to your deployed backend and try again.",
         },
       ]);
     } finally {

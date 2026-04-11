@@ -13,7 +13,12 @@ import TodayFocus from "./components/TodayFocus";
 import WeeklyPlan from "./components/WeeklyPlan";
 import WhatsComing from "./components/WhatsComing";
 import Chat from "./components/Chat";
-import { loadCourses, saveCourses } from "@/lib/storage";
+import {
+  clearCalendarTasks,
+  clearCourses,
+  loadCourses,
+  saveCourses,
+} from "@/lib/storage";
 
 function assignmentKey(a: Assignment) {
   return `${a.name}|${a.due}`;
@@ -90,6 +95,14 @@ export default function Home() {
 
   function removeCourse(id: string) {
     setCourses((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  function resetAllData() {
+    clearCourses();
+    clearCalendarTasks();
+    setCourses([]);
+    setCompleted(new Set());
+    setError(null);
   }
 
   const allAssignments: Assignment[] = courses.flatMap((c) => c.assignments);
@@ -172,6 +185,12 @@ export default function Home() {
                 onClick={() => addInputRef.current?.click()}
                 className="text-xs text-indigo-600 hover:text-indigo-500 font-medium border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors">
                 + Add syllabus
+              </button>
+              <button
+                type="button"
+                onClick={resetAllData}
+                className="text-xs text-red-600 hover:text-red-500 font-medium border border-red-200 rounded-lg px-3 py-1.5 hover:bg-red-50 transition-colors">
+                Reset all
               </button>
               <input
                 ref={addInputRef}
