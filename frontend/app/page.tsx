@@ -8,6 +8,7 @@ import RiskPanel from "./components/RiskPanel";
 import Loader from "./components/Loader";
 import Dropzone from "./components/Dropzone";
 import NextSevenDays from "./components/NextSevenDays";
+import AlertBanner from "./components/AlertBanner";
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -131,6 +132,8 @@ export default function Home() {
         )}
 
         {!loading && hasCourses && (
+          <>
+            <AlertBanner assignments={allAssignments} />
           <div className="p-8 space-y-5">
             {error && <p className="text-sm text-red-500">{error}</p>}
 
@@ -162,6 +165,7 @@ export default function Home() {
               <RiskPanel assignments={allAssignments} />
             </div>
           </div>
+          </>
         )}
       </div>
     </div>
