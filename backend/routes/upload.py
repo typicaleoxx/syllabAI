@@ -30,7 +30,7 @@ async def upload_syllabus(file: UploadFile = File(...)):
         )
 
     try:
-        assignments = extract_assignments(text)
+        assignments, contacts = extract_assignments(text)
     except AIServiceError as exc:
         msg = str(exc)
         raise HTTPException(status_code=429 if "wait" in msg.lower() else 502, detail=msg)
@@ -38,4 +38,4 @@ async def upload_syllabus(file: UploadFile = File(...)):
     if not assignments:
         raise HTTPException(status_code=422, detail="No deadlines found in this syllabus")
 
-    return UploadResponse(assignments=assignments)
+    return UploadResponse(assignments=assignments, contacts=contacts)

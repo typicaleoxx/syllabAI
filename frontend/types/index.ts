@@ -8,12 +8,21 @@ export interface Assignment {
   course?: string;
 }
 
+export interface Contact {
+  name: string;
+  role: string;
+  email: string;
+  office_hours: string;
+}
+
 export interface UploadResponse {
   assignments: Assignment[];
+  contacts: Contact[];
 }
 
 export interface Course {
   id: string;
   fileName: string;
   assignments: Assignment[];
+  contacts: Contact[];
 }

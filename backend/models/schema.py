@@ -17,5 +17,13 @@ class Assignment(BaseModel):
     course: str = ""               # course code e.g. "EGN 2440"
 
 
+class Contact(BaseModel):
+    name: str
+    role: str        # Professor, TA, etc.
+    email: str = ""
+    office_hours: str = ""
+
+
 class UploadResponse(BaseModel):
     assignments: List[Assignment]
+    contacts: List[Contact] = []

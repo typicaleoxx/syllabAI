@@ -9,6 +9,7 @@ import Loader from "./components/Loader";
 import Dropzone from "./components/Dropzone";
 import NextSevenDays from "./components/NextSevenDays";
 import AlertBanner from "./components/AlertBanner";
+import ContactCards from "./components/ContactCards";
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -36,6 +37,7 @@ export default function Home() {
         id: `${Date.now()}`,
         fileName: file.name,
         assignments: result.assignments,
+        contacts: result.contacts ?? [],
       };
       setCourses((prev) => [...prev, newCourse]);
     } catch (err) {
@@ -49,8 +51,9 @@ export default function Home() {
     setCourses((prev) => prev.filter((c) => c.id !== id));
   }
 
-  // Merge all assignments from all courses
+  // Merge all assignments and contacts from all courses
   const allAssignments: Assignment[] = courses.flatMap((c) => c.assignments);
+  const allContacts = courses.flatMap((c) => c.contacts);
 
   const today = new Date().setHours(0, 0, 0, 0);
   const highCount = allAssignments.filter((a) => a.risk === "HIGH").length;
@@ -164,6 +167,9 @@ export default function Home() {
               <Timeline assignments={allAssignments} />
               <RiskPanel assignments={allAssignments} />
             </div>
+
+            {/* Contact cards */}
+            <ContactCards contacts={allContacts} />
           </div>
           </>
         )}
