@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { uploadSyllabus, parseSyllabusText } from "@/lib/api";
 import { Course, Assignment } from "@/types";
 import { downloadICS } from "@/lib/ics";
@@ -13,6 +13,7 @@ import TodayFocus from "./components/TodayFocus";
 import WeeklyPlan from "./components/WeeklyPlan";
 import WhatsComing from "./components/WhatsComing";
 import Chat from "./components/Chat";
+import { loadCourses, saveCourses } from "@/lib/storage";
 
 function assignmentKey(a: Assignment) {
   return `${a.name}|${a.due}`;
@@ -24,7 +25,18 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [tone, setTone] = useState<Tone>("genz");
   const [completed, setCompleted] = useState<Set<string>>(new Set());
+  const [hydrated, setHydrated] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setCourses(loadCourses());
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    saveCourses(courses);
+  }, [courses, hydrated]);
 
   function toggleComplete(key: string) {
     setCompleted((prev) => {
