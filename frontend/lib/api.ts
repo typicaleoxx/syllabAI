@@ -12,7 +12,8 @@ export async function uploadSyllabus(file: File): Promise<UploadResponse> {
   });
 
   if (!res.ok) {
-    throw new Error(`Upload failed: ${res.status} ${res.statusText}`);
+    const err = await res.json().catch(() => ({ detail: "Upload failed" }));
+    throw new Error(err.detail ?? "Upload failed");
   }
 
   return res.json();

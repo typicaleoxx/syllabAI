@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { uploadSyllabus } from "@/lib/api";
-import { UploadResponse } from "@/types";
-import Dropzone from "./components/Dropzone";
+import { Course, Assignment } from "@/types";
 import Timeline from "./components/Timeline";
 import RiskPanel from "./components/RiskPanel";
 import Loader from "./components/Loader";
+import Dropzone from "./components/Dropzone";
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -19,35 +19,48 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 }
 
 export default function Home() {
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<UploadResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string>("");
+  const addInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
-    setFileName(file.name);
     setLoading(true);
     setError(null);
 
     try {
       const result = await uploadSyllabus(file);
-      console.log("SyllabAI response:", result);
-      setData(result);
+      const newCourse: Course = {
+        id: `${Date.now()}`,
+        fileName: file.name,
+        assignments: result.assignments,
+      };
+      setCourses((prev) => [...prev, newCourse]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   }
 
-  // Derived stats
-  const highCount = data?.assignments.filter((a) => a.risk === "HIGH").length ?? 0;
-  const nextDue = data?.assignments
-    .map((a) => new Date(a.due).getTime())
+  function removeCourse(id: string) {
+    setCourses((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  // Merge all assignments from all courses
+  const allAssignments: Assignment[] = courses.flatMap((c) => c.assignments);
+
+  const today = new Date().setHours(0, 0, 0, 0);
+  const highCount = allAssignments.filter((a) => a.risk === "HIGH").length;
+  const nextDue = allAssignments
+    .map((a) => { const [y, m, d] = a.due.split("-").map(Number); return new Date(y, m - 1, d).getTime(); })
+    .filter((t) => t >= today)
     .sort((a, b) => a - b)[0];
   const daysToNext = nextDue
-    ? Math.ceil((nextDue - new Date().setHours(0, 0, 0, 0)) / 86400000)
+    ? Math.ceil((nextDue - today) / 86400000)
     : null;
+
+  const hasCourses = courses.length > 0;
 
   return (
     <div className="flex flex-col h-full">
@@ -55,44 +68,77 @@ export default function Home() {
       <header className="flex items-center justify-between px-8 py-4 bg-white border-b border-gray-100">
         <div>
           <h1 className="text-base font-bold text-gray-800">Dashboard</h1>
-          {fileName && <p className="text-xs text-gray-400 mt-0.5">{fileName}</p>}
+          <p className="text-xs text-gray-400 mt-0.5">
+            {hasCourses ? `${courses.length} course${courses.length > 1 ? "s" : ""} loaded` : "No syllabi loaded"}
+          </p>
         </div>
 
-        {data && (
-          <button
-            type="button"
-            onClick={() => { setData(null); setFileName(""); setError(null); }}
-            className="text-xs text-indigo-600 hover:text-indigo-500 font-medium border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors"
-          >
-            + Upload new syllabus
-          </button>
+        {hasCourses && (
+          <div className="flex items-center gap-3">
+            {/* Course chips */}
+            <div className="flex items-center gap-2">
+              {courses.map((c) => (
+                <span
+                  key={c.id}
+                  className="flex items-center gap-1.5 text-xs bg-indigo-50 text-indigo-600 font-medium px-2.5 py-1 rounded-full"
+                >
+                  {c.fileName.replace(".pdf", "")}
+                  <button
+                    type="button"
+                    onClick={() => removeCourse(c.id)}
+                    className="text-indigo-300 hover:text-indigo-600 transition-colors leading-none"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            {/* Add another */}
+            <button
+              type="button"
+              onClick={() => addInputRef.current?.click()}
+              className="text-xs text-indigo-600 hover:text-indigo-500 font-medium border border-indigo-200 rounded-lg px-3 py-1.5 hover:bg-indigo-50 transition-colors"
+            >
+              + Add syllabus
+            </button>
+            <input
+              ref={addInputRef}
+              type="file"
+              accept=".pdf"
+              aria-label="Add another syllabus PDF"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFile(file);
+                e.target.value = "";
+              }}
+            />
+          </div>
         )}
       </header>
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto">
-        {/* Loading */}
         {loading && <Loader />}
 
-        {/* Upload state */}
-        {!loading && !data && (
+        {!loading && !hasCourses && (
           <>
             <Dropzone onFile={handleFile} loading={loading} />
-            {error && (
-              <p className="text-center text-sm text-red-500 -mt-4 pb-4">{error}</p>
-            )}
+            {error && <p className="text-center text-sm text-red-500 -mt-4 pb-4">{error}</p>}
           </>
         )}
 
-        {/* Dashboard state */}
-        {!loading && data && (
+        {!loading && hasCourses && (
           <div className="p-8 space-y-5">
+            {error && <p className="text-sm text-red-500">{error}</p>}
+
             {/* Stat cards */}
             <div className="grid grid-cols-3 gap-4">
               <StatCard
                 label="Total deadlines"
-                value={data.assignments.length}
-                sub="Extracted from syllabus"
+                value={allAssignments.length}
+                sub={`Across ${courses.length} course${courses.length > 1 ? "s" : ""}`}
               />
               <StatCard
                 label="High risk"
@@ -108,8 +154,8 @@ export default function Home() {
 
             {/* Timeline + Risk panel */}
             <div className="flex gap-4">
-              <Timeline assignments={data.assignments} />
-              <RiskPanel assignments={data.assignments} />
+              <Timeline assignments={allAssignments} />
+              <RiskPanel assignments={allAssignments} />
             </div>
           </div>
         )}

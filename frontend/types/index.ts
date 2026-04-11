@@ -11,3 +11,9 @@ export interface Assignment {
 export interface UploadResponse {
   assignments: Assignment[];
 }
+
+export interface Course {
+  id: string;
+  fileName: string;
+  assignments: Assignment[];
+}
