@@ -15,6 +15,8 @@ if not _api_key:
     raise RuntimeError("GROQ_API_KEY is not set in .env")
 
 _client = Groq(api_key=_api_key)
+_PRIMARY_MODEL = os.getenv("GROQ_PRIMARY_MODEL", "llama-3.3-70b-versatile")
+_FALLBACK_MODEL = os.getenv("GROQ_FALLBACK_MODEL", "llama-3.1-8b-instant")
 
 # --- Rate limiting (protect free tier) ---
 _REQUEST_WINDOW = 60  # seconds
@@ -45,7 +47,8 @@ _INJECTION_RE = re.compile(
 
 
 def _sanitize(text: str) -> str:
-    text = text[:40_000]
+    # Keep prompt size bounded to reduce token spend and avoid daily quota burn.
+    text = text[:12_000]
     if _INJECTION_RE.search(text):
         text = "\n".join(
             line for line in text.splitlines() if not _INJECTION_RE.search(line)
@@ -80,31 +83,33 @@ def _parse(raw: str) -> dict:
 def _infer_risk(due: str, weight: float | None = None) -> RiskLevel:
     from datetime import date
 
-    # Overdue always HIGH
-    try:
-        if (date.fromisoformat(due) - date.today()).days < 0:
-            return RiskLevel.HIGH
-    except ValueError:
-        pass
-
-    # Weight-based when available
-    if weight is not None:
-        if weight >= 30:
-            return RiskLevel.HIGH
-        if weight >= 10:
-            return RiskLevel.MEDIUM
-        return RiskLevel.LOW
-
-    # Fallback to date-based
     try:
         days = (date.fromisoformat(due) - date.today()).days
-        if days <= 7:
+    except ValueError:
+        # Can't parse date — fall back to weight only
+        if weight is not None:
+            if weight >= 30:
+                return RiskLevel.HIGH
+            if weight >= 10:
+                return RiskLevel.MEDIUM
+        return RiskLevel.MEDIUM
+
+    overdue = days < 0
+
+    if weight is not None:
+        # Combine urgency (days) and stakes (weight)
+        if (overdue and weight >= 20) or (days <= 7 and weight >= 20) or (days <= 14 and weight >= 30):
             return RiskLevel.HIGH
-        if days <= 21:
+        if overdue or (days <= 21 and weight >= 10) or weight >= 30:
             return RiskLevel.MEDIUM
         return RiskLevel.LOW
-    except ValueError:
+
+    # No weight info — use date only
+    if overdue or days <= 7:
+        return RiskLevel.HIGH
+    if days <= 21:
         return RiskLevel.MEDIUM
+    return RiskLevel.LOW
 
 
 # --- Main function ---
@@ -133,19 +138,36 @@ def extract_assignments(raw_text: str) -> tuple[list[Assignment], list[Contact]]
         "weight is a number or null. email and office_hours are empty string if not found."
     )
 
-    try:
-        response = _client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": system},
-                {"role": "user", "content": f"<document>\n{text}\n</document>"},
-            ],
-            temperature=0,
-            max_tokens=1536,
-        )
-        raw = response.choices[0].message.content or ""
-    except Exception as exc:
-        raise AIServiceError(f"AI error: {exc}") from exc
+    models = [m for m in [_PRIMARY_MODEL, _FALLBACK_MODEL] if m]
+    raw = ""
+    for idx, model in enumerate(models):
+        try:
+            response = _client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": f"<document>\n{text}\n</document>"},
+                ],
+                temperature=0,
+            )
+            raw = response.choices[0].message.content or ""
+            break
+        except Exception as exc:
+            msg = str(exc).lower()
+            is_rate_limit = (
+                "rate limit" in msg
+                or "rate_limit_exceeded" in msg
+                or "tokens per day" in msg
+                or "error code: 429" in msg
+            )
+            if is_rate_limit and idx < len(models) - 1:
+                continue
+            if is_rate_limit:
+                raise AIServiceError(
+                    "AI quota reached on Groq. Try again later, rotate to a fresh key, "
+                    "or set GROQ_FALLBACK_MODEL to a lighter model."
+                ) from exc
+            raise AIServiceError(f"AI error: {exc}") from exc
 
     parsed = _parse(raw)
 
