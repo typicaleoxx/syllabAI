@@ -4,6 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { Tone } from "@/lib/tone";
 import { addCalendarTask } from "@/lib/storage";
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || "http://localhost:8000";
+
 interface Message {
   id: string;
   role: "user" | "ai";
@@ -110,7 +113,7 @@ export default function Chat({ tone }: Props) {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8000/chat", {
+      const res = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
