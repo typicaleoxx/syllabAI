@@ -1,4 +1,4 @@
-# SyllabAI — AI-Powered Syllabus Intelligence System
+# SyllabAI - AI-Powered Syllabus Intelligence System
 
 ## 1. Overview
 
