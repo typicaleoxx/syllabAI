@@ -12,6 +12,7 @@ import StatusCard from "./components/StatusCard";
 import TodayFocus from "./components/TodayFocus";
 import WeeklyPlan from "./components/WeeklyPlan";
 import WhatsComing from "./components/WhatsComing";
+import RiskPanel from "./components/RiskPanel";
 import Chat from "./components/Chat";
 import {
   clearCalendarTasks,
@@ -249,13 +250,18 @@ export default function Home() {
                 <WhatsComing assignments={allAssignments} tone={tone} />
               </div>
 
-              {/* Weekly Game Plan */}
-              <WeeklyPlan
-                assignments={allAssignments}
-                tone={tone}
-                completed={completed}
-                assignmentKey={assignmentKey}
-              />
+              {/* Weekly Game Plan + Risk Breakdown */}
+              <div className="flex gap-5 items-start">
+                <div className="flex-1">
+                  <WeeklyPlan
+                    assignments={allAssignments}
+                    tone={tone}
+                    completed={completed}
+                    assignmentKey={assignmentKey}
+                  />
+                </div>
+                <RiskPanel assignments={allAssignments} />
+              </div>
 
               {/* Contact cards */}
               <ContactCards contacts={allContacts} />
