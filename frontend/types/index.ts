@@ -26,3 +26,12 @@ export interface Course {
   assignments: Assignment[];
   contacts: Contact[];
 }
+
+export interface CalendarTask {
+  id: string;
+  title: string;
+  date: string;
+  time: string;
+  notes?: string;
+  source: "manual" | "chat" | "assignment";
+}

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Tone } from "@/lib/tone";
+import { addCalendarTask } from "@/lib/storage";
 
 interface Message {
   id: string;
@@ -28,6 +29,42 @@ export default function Chat({ tone }: Props) {
   const [loading, setLoading] = useState(false);
   const messagesEnd = useRef<HTMLDivElement>(null);
 
+  function scheduleFromText(text: string) {
+    const lower = text.toLowerCase();
+    const isScheduleCommand =
+      lower.startsWith("add to calendar:") ||
+      lower.startsWith("schedule:") ||
+      lower.startsWith("calendar:");
+
+    if (!isScheduleCommand) return false;
+
+    const cleaned = text
+      .replace(/^add to calendar:|^schedule:|^calendar:/i, "")
+      .trim();
+    if (!cleaned) return false;
+
+    const dateMatch = cleaned.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+    const timeMatch = cleaned.match(/\b(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)?)\b/);
+    const title = cleaned
+      .replace(/\b(\d{4}-\d{2}-\d{2})\b/, "")
+      .replace(/\b(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm)?)\b/, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!dateMatch || !title) return false;
+
+    addCalendarTask({
+      id: `chat-${Date.now()}`,
+      title,
+      date: dateMatch[1],
+      time: timeMatch?.[1] ?? "6:00 PM",
+      notes: "Added from chat",
+      source: "chat",
+    });
+
+    return true;
+  }
+
   const scrollToBottom = () => {
     messagesEnd.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -38,6 +75,29 @@ export default function Chat({ tone }: Props) {
 
   async function handleSend() {
     if (!input.trim()) return;
+
+    if (scheduleFromText(input)) {
+      const userMsg: Message = {
+        id: `user-${Date.now()}`,
+        role: "user",
+        text: input,
+      };
+
+      setMessages((prev) => [
+        ...prev,
+        userMsg,
+        {
+          id: `ai-${Date.now()}`,
+          role: "ai",
+          text:
+            tone === "genz"
+              ? "bet bro, i dropped that into the calendar"
+              : "Got it. I added that to the calendar.",
+        },
+      ]);
+      setInput("");
+      return;
+    }
 
     const userMsg: Message = {
       id: `user-${Date.now()}`,
@@ -139,6 +199,11 @@ export default function Chat({ tone }: Props) {
           className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-500 disabled:opacity-50 transition-all">
           Send
         </button>
+      </div>
+      <div className="px-4 pb-4 text-[11px] text-gray-400">
+        Tip: type <span className="font-semibold">add to calendar:</span> then a
+        date like <span className="font-semibold">2026-04-15</span> and a time
+        like <span className="font-semibold">6:00 PM</span>.
       </div>
     </div>
   );

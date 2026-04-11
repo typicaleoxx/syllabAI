@@ -37,25 +37,25 @@ export default function WhatsComing({ assignments, tone }: Props) {
   const headers: Record<Tone, string> = {
     direct: "Next Week",
     practical: "What's Coming",
-    supportive: "Looking Ahead",
+    genz: "Looking Ahead",
   };
 
   const emptyMsg: Record<Tone, string> = {
     direct: "Nothing significant next week.",
     practical: "Nothing major coming up next week.",
-    supportive: "Next week is looking clear.",
+    genz: "Next week is looking clear.",
   };
 
   const heavyMsg: Record<Tone, string> = {
     direct: `${highCount} high-priority items next week. Start preparing now.`,
     practical: "Next week has several important deadlines. Begin prep today.",
-    supportive: `Next week will be busy with ${highCount} important items. You have time to prepare.`,
+    genz: `Next week will be busy with ${highCount} important items. You have time to prepare.`,
   };
 
   const lightMsg: Record<Tone, string> = {
     direct: "Next week is manageable.",
     practical: "Next week looks lighter than this one.",
-    supportive: "Next week should be easier.",
+    genz: "Next week should be easier.",
   };
 
   return (

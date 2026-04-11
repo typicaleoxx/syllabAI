@@ -123,7 +123,7 @@ export default function WeeklyPlan({
   const headers: Record<Tone, string> = {
     direct: "Weekly Plan",
     practical: "Your Week",
-    supportive: "Your Week Ahead",
+    genz: "Your Week Ahead",
   };
 
   return (
