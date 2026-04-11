@@ -37,8 +37,7 @@ export default function TodayFocus({ assignments, tone }: Props) {
 
       {upcoming.length === 0 ? (
         <div className="px-6 py-8 text-center">
-          <p className="text-2xl mb-2">😌</p>
-          <p className="text-sm font-medium text-gray-600">{TONE.today_clear[tone]}</p>
+          <p className="text-sm font-medium text-gray-500">{TONE.today_clear[tone]}</p>
         </div>
       ) : (
         <div className="divide-y divide-gray-50">

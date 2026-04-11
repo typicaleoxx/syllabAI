@@ -22,19 +22,18 @@ export default function StatusCard({ assignments, tone }: Props) {
   const isHeavy = urgentThisWeek.length >= 2;
 
   const message = isHeavy ? TONE.status_heavy[tone] : TONE.status_good[tone];
-  const icon = isHeavy ? "⚠️" : "✅";
-  const bg = isHeavy
-    ? "bg-amber-50 border-amber-200"
-    : "bg-green-50 border-green-200";
+  const bg = isHeavy ? "bg-amber-50 border-amber-200" : "bg-green-50 border-green-200";
+  const dot = isHeavy ? "bg-amber-400" : "bg-green-400";
   const textColor = isHeavy ? "text-amber-800" : "text-green-800";
+  const subColor = isHeavy ? "text-amber-600" : "text-green-600";
 
   return (
     <div className={`rounded-2xl border px-6 py-5 flex items-center gap-4 ${bg}`}>
-      <span className="text-3xl">{icon}</span>
+      <span className={`w-3 h-3 rounded-full shrink-0 ${dot}`} />
       <div>
         <p className={`text-base font-semibold ${textColor}`}>{message}</p>
         {isHeavy && (
-          <p className="text-sm text-amber-600 mt-0.5">
+          <p className={`text-sm mt-0.5 ${subColor}`}>
             {urgentThisWeek.length} high-priority items need your attention this week
           </p>
         )}

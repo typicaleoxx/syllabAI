@@ -18,7 +18,6 @@ const RISK_DOT: Record<string, string> = {
 interface Props { assignments: Assignment[]; tone: Tone; }
 
 export default function WhatsComing({ assignments, tone }: Props) {
-  // Next week: days 7–14
   const nextWeek = assignments
     .filter((a) => { const d = daysUntil(a.due); return d >= 7 && d <= 14; })
     .sort((a, b) => daysUntil(a.due) - daysUntil(b.due));
@@ -34,42 +33,39 @@ export default function WhatsComing({ assignments, tone }: Props) {
 
   const emptyMsg: Record<Tone, string> = {
     serious: "Nothing significant in the next two weeks.",
-    chill: "Nothing big coming up — enjoy the breather.",
-    genz: "next week is looking chill ngl 😌",
+    chill:   "Nothing big coming up, enjoy the breather.",
+    genz:    "next week is looking chill ngl",
   };
 
   const heavyMsg: Record<Tone, string> = {
     serious: `${highCount} high-priority items next week. Begin preparation now.`,
-    chill: `Heads up — next week is looking busy. Start prepping soon 📅`,
-    genz: `next week is gonna hit different fr 👀 prep now not later`,
+    chill:   "Heads up, next week is looking busy. Start prepping soon.",
+    genz:    "next week is gonna hit different, prep now not later",
   };
 
   const lightMsg: Record<Tone, string> = {
     serious: "Next week appears manageable. Stay consistent.",
-    chill: "Next week looks pretty light — you've got this 🙌",
-    genz: "next week lowkey looks chill ngl",
+    chill:   "Next week looks pretty light, you've got this.",
+    genz:    "next week lowkey looks chill ngl",
   };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
         <h2 className="text-base font-bold text-gray-800">{headers[tone]}</h2>
-        <span className="text-xs text-gray-400">Next 7–14 days</span>
+        <span className="text-xs text-gray-400">Days 7-14</span>
       </div>
 
       {nextWeek.length === 0 ? (
         <div className="px-6 py-8 text-center">
-          <p className="text-2xl mb-2">🌅</p>
           <p className="text-sm text-gray-500">{emptyMsg[tone]}</p>
         </div>
       ) : (
         <>
-          {/* Teaser banner */}
           <div className={`px-6 py-3 text-sm font-medium ${isHeavy ? "bg-amber-50 text-amber-700" : "bg-green-50 text-green-700"}`}>
             {isHeavy ? heavyMsg[tone] : lightMsg[tone]}
           </div>
 
-          {/* Assignment list */}
           <ul className="divide-y divide-gray-50">
             {nextWeek.map((a, i) => {
               const d = daysUntil(a.due);

@@ -28,9 +28,9 @@ function getSuggestion(day: DayPlan, tone: Tone): string {
   const isTomorrow = day.dayOffset === 1;
 
   if (!has) {
-    if (tone === "serious") return "No deadlines — review recent material or read ahead.";
-    if (tone === "chill") return "Nothing due — good time to get ahead or just breathe.";
-    return "free day, do whatever bestie 😌";
+    if (tone === "serious") return "No deadlines. Review recent material or read ahead.";
+    if (tone === "chill") return "Nothing due, good time to get ahead or just breathe.";
+    return "free day, do whatever bestie";
   }
 
   const firstName = names[0];
@@ -39,32 +39,32 @@ function getSuggestion(day: DayPlan, tone: Tone): string {
   if (high.length > 0) {
     const highName = high[0].name;
     if (tone === "serious") {
-      if (isToday) return `${highName} is due today — submit and confirm.`;
-      if (isTomorrow) return `${highName} is due tomorrow — finalize tonight.`;
-      return `${highName} is high priority this day — dedicate focused time.`;
+      if (isToday) return `${highName} is due today. Submit and confirm.`;
+      if (isTomorrow) return `${highName} is due tomorrow. Finalize tonight.`;
+      return `${highName} is high priority this day. Dedicate focused time.`;
     }
     if (tone === "chill") {
-      if (isToday) return `${highName} is due today — get it in!`;
-      if (isTomorrow) return `${highName} is tomorrow — wrap it up tonight 💪`;
+      if (isToday) return `${highName} is due today, get it in!`;
+      if (isTomorrow) return `${highName} is tomorrow, wrap it up tonight.`;
       return `${highName} needs real attention this day.`;
     }
     // genz
-    if (isToday) return `bro ${highName} is literally due TODAY 💀 go go go`;
-    if (isTomorrow) return `${highName} is tomorrow, stop scrolling and finish it 😭`;
-    return `${highName} is coming up, it's giving urgent energy 🚨`;
+    if (isToday) return `bro ${highName} is literally due TODAY go go go`;
+    if (isTomorrow) return `${highName} is tomorrow, stop scrolling and finish it`;
+    return `${highName} is coming up, it's giving urgent energy`;
   }
 
   // medium/low only
   if (tone === "serious") {
-    if (count > 1) return `${count} items due — prioritize and allocate time proportionally.`;
-    return `${firstName} is due — keep it on your radar.`;
+    if (count > 1) return `${count} items due. Prioritize and allocate time proportionally.`;
+    return `${firstName} is due. Keep it on your radar.`;
   }
   if (tone === "chill") {
-    if (count > 1) return `${count} things due — just stay organized and you're fine.`;
-    return `${firstName} is due — shouldn't be too bad 👍`;
+    if (count > 1) return `${count} things due, just stay organized and you're fine.`;
+    return `${firstName} is due, shouldn't be too bad.`;
   }
   // genz
-  if (count > 1) return `${count} things due, not gonna lie it's giving busy 😅`;
+  if (count > 1) return `${count} things due, not gonna lie it's giving busy`;
   return `${firstName} is due, not a big deal but don't ghost it`;
 }
 
@@ -77,7 +77,6 @@ export default function WeeklyPlan({ assignments, tone }: Props) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Build 7 days starting from today
   const days: DayPlan[] = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(today);
     date.setDate(today.getDate() + i);
@@ -92,7 +91,7 @@ export default function WeeklyPlan({ assignments, tone }: Props) {
   const headers: Record<Tone, string> = {
     serious: "Weekly Plan",
     chill: "Your Week at a Glance",
-    genz: "the week ahead (stay ready)",
+    genz: "the week ahead",
   };
 
   return (
@@ -129,9 +128,9 @@ export default function WeeklyPlan({ assignments, tone }: Props) {
 
               {/* Dot indicators */}
               <div className="flex gap-1 items-center pt-1 shrink-0 w-12">
-                {high > 0 && <span className="w-2 h-2 rounded-full bg-red-400" title="HIGH" />}
-                {med > 0 && <span className="w-2 h-2 rounded-full bg-amber-400" title="MEDIUM" />}
-                {low > 0 && <span className="w-2 h-2 rounded-full bg-green-400" title="LOW" />}
+                {high > 0 && <span className="w-2 h-2 rounded-full bg-red-400" />}
+                {med > 0 && <span className="w-2 h-2 rounded-full bg-amber-400" />}
+                {low > 0 && <span className="w-2 h-2 rounded-full bg-green-400" />}
                 {day.assignments.length === 0 && <span className="w-2 h-2 rounded-full bg-gray-100" />}
               </div>
 
