@@ -10,7 +10,7 @@ export const TONE = {
   loading: {
     direct: "Analyzing your syllabus...",
     practical: "Processing your syllabus...",
-    supportive: "Let me organize your syllabus...",
+    genz: "lowkey scanning your syllabus rn",
   },
   status_good: {
     direct: "No critical deadlines this week.",
@@ -41,10 +41,10 @@ export const TONE = {
       weight
         ? `${name} counts for ${weight}% of your grade.`
         : `Start working on ${name} soon.`,
-    supportive: (name: string, weight: number | null | undefined) =>
+    genz: (name: string, weight: number | null | undefined) =>
       weight
-        ? `${name} is ${weight}% of your overall grade. You've got this.`
-        : `Take time today or tomorrow to get started on ${name}.`,
+        ? `${name} is ${weight}% of your grade bro. Don't sleep on it.`
+        : `Lowkey start ${name} today so you don't get cooked later.`,
   },
   next_week_clear: {
     direct: "Next week is light.",
