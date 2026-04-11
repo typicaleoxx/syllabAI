@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { uploadSyllabus } from "@/lib/api";
 import { Course, Assignment } from "@/types";
+import { downloadICS } from "@/lib/ics";
 import Timeline from "./components/Timeline";
 import RiskPanel from "./components/RiskPanel";
 import Loader from "./components/Loader";
@@ -98,6 +99,18 @@ export default function Home() {
                 </span>
               ))}
             </div>
+
+            {/* Export calendar */}
+            <button
+              type="button"
+              onClick={() => downloadICS(allAssignments)}
+              className="text-xs text-gray-600 hover:text-gray-800 font-medium border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Export .ics
+            </button>
 
             {/* Add another */}
             <button
