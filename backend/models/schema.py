@@ -14,6 +14,7 @@ class Assignment(BaseModel):
     due: str
     risk: RiskLevel
     weight: Optional[float] = None  # grade percentage e.g. 26.67
+    course: str = ""               # course code e.g. "EGN 2440"
 
 
 class UploadResponse(BaseModel):

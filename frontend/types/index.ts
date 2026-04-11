@@ -5,6 +5,7 @@ export interface Assignment {
   due: string;
   risk: RiskLevel;
   weight?: number | null;
+  course?: string;
 }
 
 export interface UploadResponse {

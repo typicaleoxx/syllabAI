@@ -6,13 +6,20 @@ const RISK_STYLES: Record<string, string> = {
   LOW:    "bg-green-100 text-green-700",
 };
 
+// Parse YYYY-MM-DD as local time to avoid UTC offset shifting the date
+function parseLocalDate(dateStr: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function daysUntil(dateStr: string): number {
-  const diff = new Date(dateStr).getTime() - new Date().setHours(0, 0, 0, 0);
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.ceil((parseLocalDate(dateStr).getTime() - today.getTime()) / 86400000);
 }
 
 function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return parseLocalDate(dateStr).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -58,7 +65,14 @@ export default function Timeline({ assignments }: TimelineProps) {
                   a.risk === "MEDIUM" ? "bg-yellow-500" : "bg-green-500"
                 }`} />
                 <div>
-                  <p className="text-sm font-medium text-gray-800">{a.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium text-gray-800">{a.name}</p>
+                    {a.course && (
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-500">
+                        {a.course}
+                      </span>
+                    )}
+                  </div>
                   <p className={`text-xs mt-0.5 ${urgencyColor}`}>{urgency}</p>
                 </div>
               </div>
