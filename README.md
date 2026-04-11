@@ -1,272 +1,236 @@
-# SyllabAI - AI-Powered Syllabus Intelligence System
+# SyllabAI
 
-## 1. Overview
+SyllabAI is an AI-powered planner that turns syllabus PDFs or pasted syllabus text into structured deadlines, risk levels, weekly study plans, and calendar exports.
 
-SyllabAI is a full-stack hackathon project that analyzes syllabus PDFs and converts them into structured, actionable insights.
+## What The Project Does
 
-Core idea:
-Students struggle to track deadlines hidden in long syllabus documents. This system extracts assignments, exams, and deadlines, then highlights urgency using risk levels.
+- Upload a syllabus PDF or paste syllabus text.
+- Extract assignments, exams, deadlines, course codes, and instructor contacts.
+- Calculate risk level per item (HIGH, MEDIUM, LOW) using due date and weight.
+- Show a dashboard with today focus, weekly plan, and upcoming items.
+- Open dedicated Syllabi and Calendar pages.
+- Add manual calendar tasks and quick-add tasks from chat.
+- Export deadlines as ICS for Google Calendar / Apple Calendar / Outlook.
 
----
+## Why It Exists
 
-## 2. Problem
+Syllabus documents are dense and unstructured. Students miss high-impact deadlines because the information is scattered. SyllabAI converts that raw text into an action-oriented schedule.
 
-Real-world issue:
-- Syllabus PDFs are long and unstructured
-- Important deadlines are easy to miss
-- Students manually track everything
+## Tech Stack
 
-Technical problem:
-PDF (unstructured text)
--> No structured format
--> No automation possible
+### Frontend
 
----
-
-## 3. Solution
-
-System flow:
-Upload PDF
--> Extract text
--> AI extracts key information
--> Risk engine computes urgency
--> Frontend displays results
-
-Example output:
-{
-  "assignments": [
-    {
-      "name": "Midterm Exam",
-      "due": "2026-04-20",
-      "risk": "HIGH"
-    }
-  ]
-}
-
----
-
-## 4. Tech Stack
-
-Frontend:
-- Next.js
+- Next.js 14 (App Router)
+- React 18
+- TypeScript
 - Tailwind CSS
-- shadcn/ui
 
-Backend:
-- FastAPI (Python)
+### Backend
 
-AI Layer:
-- Gemini API or OpenAI
+- FastAPI
+- Pydantic
+- Uvicorn
 
-Parsing:
-- PyPDF2
+### AI And Parsing
 
----
+- Groq API (LLM extraction)
+- PyPDF2 (PDF text extraction)
 
-## 5. Project Structure
+### Storage
 
-syllab-ai/
+- Browser localStorage for saved courses and calendar tasks
 
-frontend/
-- app/
-  - page.tsx
-  - components/
-    - Dropzone.tsx
-    - Timeline.tsx
-    - RiskPanel.tsx
-    - Loader.tsx
-- lib/api.ts
-- types/index.ts
+## Architecture
 
-backend/
-- main.py
-- routes/upload.py
-- services/
-  - parser.py
-  - ai_parser.py
-  - risk_engine.py
-- models/schema.py
-- requirements.txt
+1. User uploads PDF or pastes text in frontend.
+2. Frontend calls backend endpoints.
+3. Backend extracts PDF text (or uses pasted text).
+4. Backend sends sanitized text to Groq with structured extraction prompt.
+5. Backend validates and normalizes output into Assignment and Contact schema.
+6. Risk level is computed and response is returned to frontend.
+7. Frontend renders dashboard, weekly plan, calendar view, and ICS export.
 
-README.md
-.env
+## Current Features
 
----
+- PDF upload endpoint and text-parse endpoint
+- Chat endpoint with configurable tone
+- Multi-syllabus merge on dashboard
+- Risk-aware UI (color-coded urgency)
+- Weekly planner with suggested start times
+- Calendar page with manual and chat-added tasks
+- Syllabi page with saved course summaries and contacts
+- ICS generation and download
 
-## 6. System Architecture
+## Project Structure
 
-User
--> Frontend (Next.js)
--> FastAPI Backend
--> Parser -> AI -> Risk Engine
--> JSON Response
--> UI Display
+```text
+syllabAI/
+  backend/
+    main.py
+    requirements.txt
+    models/
+      schema.py
+    routes/
+      upload.py
+      chat.py
+    services/
+      parser.py
+      ai_parser.py
 
----
+  frontend/
+    app/
+      page.tsx
+      layout.tsx
+      calendar/page.tsx
+      syllabi/page.tsx
+      components/
+        Dropzone.tsx
+        Loader.tsx
+        StatusCard.tsx
+        TodayFocus.tsx
+        WeeklyPlan.tsx
+        WhatsComing.tsx
+        Timeline.tsx
+        RiskPanel.tsx
+        Chat.tsx
+        ContactCards.tsx
+    lib/
+      api.ts
+      ics.ts
+      storage.ts
+      tone.ts
+    types/
+      index.ts
+```
 
-## 7. Development Plan
+## API Endpoints
 
-Phase 1:
-- Setup frontend and backend
+### `GET /`
 
-Phase 2:
-- Create /upload endpoint
-- Return mock JSON
+Health check.
 
-Phase 3:
-- Connect frontend to backend
+### `POST /upload`
 
-Phase 4:
-- Extract text from PDF
-
-Phase 5:
-- AI converts text to structured JSON
-
-Phase 6:
-- Risk engine assigns HIGH / MEDIUM / LOW
-
-Phase 7:
-- Display results in UI
-
----
-
-## 8. Team Distribution
-
-Backend:
-- API
-- parser
-- risk engine
-
-Frontend:
-- UI
-- upload
-- display
-
-AI + Integration:
-- AI extraction
-- debugging
-- connecting everything
-
----
-
-## 9. Execution Timeline
-
-0–2 hours:
-- Setup + backend API
-
-2–4 hours:
-- Frontend + API connection
-
-4–6 hours:
-- Parser + mock AI
-
-6–8 hours:
-- AI + risk engine
-
-After:
-- Polish + demo
-
----
-
-## 10. API Contract
-
-Endpoint:
-POST /upload
+Accepts PDF file upload and returns parsed assignments + contacts.
 
 Request:
-- file (PDF)
 
-Response:
+- multipart/form-data
+- `file`: PDF
+
+### `POST /parse-text`
+
+Accepts raw syllabus text and returns parsed assignments + contacts.
+
+Request body:
+
+```json
 {
-  "assignments": [
-    {
-      "name": "HW1",
-      "due": "2026-05-01",
-      "risk": "HIGH"
-    }
-  ]
+  "text": "..."
 }
+```
 
----
+### `POST /chat`
 
-## 11. UI Design
+Chat assistant for planning help.
 
-Single page layout:
+Request body:
 
-Title: SyllabAI
-Upload your syllabus
-[ Upload Box ]
+```json
+{
+  "message": "what should i do first?",
+  "tone": "genz"
+}
+```
 
-Timeline | Risk Panel
-HW1      | HIGH
-Quiz     | MEDIUM
+## Environment Variables
 
-Color mapping:
-- HIGH = red
-- MEDIUM = yellow
-- LOW = green
+### Backend (`backend/.env`)
 
----
+Required:
 
-## 12. How to Run
+- `GROQ_API_KEY=your_groq_key`
 
-Backend:
+Optional:
+
+- `FRONTEND_ORIGIN=https://your-frontend-domain.vercel.app`
+
+### Frontend (Vercel project env)
+
+Required for production:
+
+- `NEXT_PUBLIC_API_BASE_URL=https://your-backend-domain`
+
+Local fallback is `http://localhost:8000`.
+
+## Run Locally
+
+### 1. Backend
+
+```bash
 cd backend
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn main:app --reload --port 8000
+```
 
-Frontend:
+Open docs: `http://localhost:8000/docs`
+
+### 2. Frontend
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
----
+Frontend runs on: `http://localhost:3003`
 
-## 13. Debugging Checklist
+## Deployment Guide
 
-- CORS error -> add middleware
-- Empty response -> check parser output
-- API not called -> verify URL
-- File not reading -> check UploadFile usage
+### Backend (Render or Railway)
 
----
+- Root directory: `backend`
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- Env vars:
+  - `GROQ_API_KEY`
+  - `FRONTEND_ORIGIN` (your frontend URL)
 
-## 14. Future Improvements
+### Frontend (Vercel)
 
-- Multiple syllabus support
-- Calendar integration
-- Notifications
-- Chat with syllabus (RAG)
+- Root directory: `frontend`
+- Framework preset: Next.js
+- Env var:
+  - `NEXT_PUBLIC_API_BASE_URL=https://your-backend-domain`
 
----
+## Validation Checklist
 
-## 15. Real-World Relevance
+- `http://localhost:8000/docs` opens
+- Upload PDF returns parsed JSON
+- Paste text mode returns parsed JSON
+- Dashboard shows assignments and risk levels
+- Chat replies successfully
+- Calendar adds manual tasks
+- Chat quick-add command updates calendar
+- ICS file downloads correctly
 
-Software Engineering:
-- full-stack systems
-- API design
-- AI integration
+## Known Limitations
 
-Cybersecurity:
-Logs -> Parser -> AI -> Risk -> Dashboard
+- OCR is not implemented for fully image-based scanned PDFs.
+- Browser localStorage is device/browser-specific.
+- AI extraction quality depends on syllabus formatting and text quality.
 
-Used in:
-- SIEM
-- SOC automation
-- threat analysis
+## Security Notes
 
----
+- Never commit API keys.
+- If a key was exposed during testing, revoke and rotate it immediately.
 
-## 16. Pitch
+## Hackathon Summary
 
-Students struggle to track deadlines hidden inside long syllabus PDFs.
-SyllabAI uses AI to automatically extract assignments, predict urgency, and present a clear timeline with risk levels.
-Instead of manually scanning documents, students get instant actionable insights.
+SyllabAI demonstrates a full pipeline:
 
----
+`PDF/Text -> Parser -> LLM Structuring -> Risk Scoring -> Planner UI -> Calendar Export`
 
-## 17. Build Order (IMPORTANT)
-
-Upload -> API -> Mock Response -> UI -> Parser -> AI -> Risk
-
-Do not move forward unless each step works.
+It combines practical student workflow design with production-style API and frontend integration.
