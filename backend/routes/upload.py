@@ -6,9 +6,9 @@ from services.ai_parser import extract_assignments, AIServiceError
 
 router = APIRouter()
 
-MAX_FILE_SIZE    = 10 * 1024 * 1024  # 10 MB
-MAX_TEXT_LENGTH  = 50_000
-PDF_MAGIC_BYTES  = b"%PDF"
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+MAX_TEXT_LENGTH = 50_000
+PDF_MAGIC_BYTES = b"%PDF"
 
 
 class TextPayload(BaseModel):
@@ -21,13 +21,20 @@ async def parse_text(payload: TextPayload):
     if not text:
         raise HTTPException(status_code=400, detail="No text provided")
     if len(text) > MAX_TEXT_LENGTH:
-        raise HTTPException(status_code=400, detail="Text too long (max 50,000 characters)")
+        raise HTTPException(
+            status_code=400, detail="Text too long (max 50,000 characters)"
+        )
 
     try:
         assignments, contacts = extract_assignments(text)
     except AIServiceError as exc:
         msg = str(exc)
-        raise HTTPException(status_code=429 if "wait" in msg.lower() else 502, detail=msg)
+        status = (
+            429
+            if any(k in msg.lower() for k in ["wait", "rate limit", "quota"])
+            else 502
+        )
+        raise HTTPException(status_code=status, detail=msg)
 
     if not assignments:
         raise HTTPException(status_code=422, detail="No deadlines found in this text")
@@ -46,7 +53,9 @@ async def upload_syllabus(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="File too large. Max size is 10 MB")
 
     if not file_bytes.startswith(PDF_MAGIC_BYTES):
-        raise HTTPException(status_code=400, detail="Invalid file. Please upload a real PDF")
+        raise HTTPException(
+            status_code=400, detail="Invalid file. Please upload a real PDF"
+        )
 
     text = extract_text(file_bytes)
     if not text.strip():
@@ -59,9 +68,16 @@ async def upload_syllabus(file: UploadFile = File(...)):
         assignments, contacts = extract_assignments(text)
     except AIServiceError as exc:
         msg = str(exc)
-        raise HTTPException(status_code=429 if "wait" in msg.lower() else 502, detail=msg)
+        status = (
+            429
+            if any(k in msg.lower() for k in ["wait", "rate limit", "quota"])
+            else 502
+        )
+        raise HTTPException(status_code=status, detail=msg)
 
     if not assignments:
-        raise HTTPException(status_code=422, detail="No deadlines found in this syllabus")
+        raise HTTPException(
+            status_code=422, detail="No deadlines found in this syllabus"
+        )
 
     return UploadResponse(assignments=assignments, contacts=contacts)
