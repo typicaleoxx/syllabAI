@@ -1,7 +1,7 @@
 import { UploadResponse } from "@/types";
 
 function resolveApiBaseUrl(): string {
-  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  const configured = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "");
   if (configured) return configured;
 
   if (typeof window !== "undefined") {
@@ -31,6 +31,14 @@ function normalizeFetchError(err: unknown): Error {
 
 export function getApiBaseUrl(): string {
   return resolveApiBaseUrl();
+}
+
+export async function pingBackend(): Promise<void> {
+  try {
+    await fetch(`${resolveApiBaseUrl()}/`, { method: "GET" });
+  } catch {
+    // fire and forget — just waking up Render
+  }
 }
 
 export async function uploadSyllabus(file: File): Promise<UploadResponse> {
