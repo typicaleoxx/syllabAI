@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: syllabaI-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: GROQ_PRIMARY_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_FALLBACK_MODEL
+        value: llama-3.1-8b-instant
+      - key: GROQ_CHAT_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_CHAT_FALLBACK_MODEL
+        value: llama-3.1-8b-instant
