@@ -2,64 +2,13 @@
 
 SyllabAI is an AI-powered planner that turns syllabus PDFs or pasted syllabus text into structured deadlines, risk levels, weekly study plans, and calendar exports.
 
-## What The Project Does
+## What It Does
 
-- Upload a syllabus PDF or paste syllabus text.
-- Extract assignments, exams, deadlines, course codes, and instructor contacts.
-- Calculate risk level per item (HIGH, MEDIUM, LOW) using due date and weight.
-- Show a dashboard with today focus, weekly plan, and upcoming items.
-- Open dedicated Syllabi and Calendar pages.
-- Add manual calendar tasks and quick-add tasks from chat.
-- Export deadlines as ICS for Google Calendar / Apple Calendar / Outlook.
-
-## Why It Exists
-
-Syllabus documents are dense and unstructured. Students miss high-impact deadlines because the information is scattered. SyllabAI converts that raw text into an action-oriented schedule.
+Upload a syllabus PDF or paste your syllabus text and SyllabAI pulls out every assignment, exam, and deadline automatically. It figures out the risk level of each item based on how soon it is and how much it is worth, then builds you a dashboard with a today focus, weekly plan, and upcoming view. You can also chat with an AI coach, add tasks to a calendar, and export everything as an ICS file for Google Calendar, Apple Calendar, or Outlook.
 
 ## Tech Stack
 
-### Frontend
-
-- Next.js 14 (App Router)
-- React 18
-- TypeScript
-- Tailwind CSS
-
-### Backend
-
-- FastAPI
-- Pydantic
-- Uvicorn
-
-### AI And Parsing
-
-- Groq API (LLM extraction)
-- PyPDF2 (PDF text extraction)
-
-### Storage
-
-- Browser localStorage for saved courses and calendar tasks
-
-## Architecture
-
-1. User uploads PDF or pastes text in frontend.
-2. Frontend calls backend endpoints.
-3. Backend extracts PDF text (or uses pasted text).
-4. Backend sends sanitized text to Groq with structured extraction prompt.
-5. Backend validates and normalizes output into Assignment and Contact schema.
-6. Risk level is computed and response is returned to frontend.
-7. Frontend renders dashboard, weekly plan, calendar view, and ICS export.
-
-## Current Features
-
-- PDF upload endpoint and text-parse endpoint
-- Chat endpoint with configurable tone
-- Multi-syllabus merge on dashboard
-- Risk-aware UI (color-coded urgency)
-- Weekly planner with suggested start times
-- Calendar page with manual and chat-added tasks
-- Syllabi page with saved course summaries and contacts
-- ICS generation and download
+The frontend is built with Next.js 14, React 18, TypeScript, and Tailwind CSS. The backend runs on FastAPI with Uvicorn. AI extraction uses the Groq API with llama models, and PDF text extraction uses PyPDF2. Everything is stored in browser localStorage so there is no database needed.
 
 ## Project Structure
 
@@ -68,14 +17,11 @@ syllabAI/
   backend/
     main.py
     requirements.txt
-    models/
-      schema.py
-    routes/
-      upload.py
-      chat.py
-    services/
-      parser.py
-      ai_parser.py
+    models/schema.py
+    routes/upload.py
+    routes/chat.py
+    services/parser.py
+    services/ai_parser.py
 
   frontend/
     app/
@@ -84,88 +30,41 @@ syllabAI/
       calendar/page.tsx
       syllabi/page.tsx
       components/
-        Dropzone.tsx
-        Loader.tsx
-        StatusCard.tsx
-        TodayFocus.tsx
-        WeeklyPlan.tsx
-        WhatsComing.tsx
-        Timeline.tsx
-        RiskPanel.tsx
-        Chat.tsx
-        ContactCards.tsx
     lib/
-      api.ts
-      ics.ts
-      storage.ts
-      tone.ts
-    types/
-      index.ts
+      api.ts  storage.ts  ics.ts  tone.ts
+    types/index.ts
 ```
 
 ## API Endpoints
 
-### `GET /`
+`GET /` returns a health check confirming the backend is running.
 
-Health check.
+`POST /upload` accepts a multipart PDF file and returns parsed assignments and contacts.
 
-### `POST /upload`
+`POST /parse-text` accepts a JSON body with a `text` field and returns the same structure.
 
-Accepts PDF file upload and returns parsed assignments + contacts.
-
-Request:
-
-- multipart/form-data
-- `file`: PDF
-
-### `POST /parse-text`
-
-Accepts raw syllabus text and returns parsed assignments + contacts.
-
-Request body:
-
-```json
-{
-  "text": "..."
-}
-```
-
-### `POST /chat`
-
-Chat assistant for planning help.
-
-Request body:
-
-```json
-{
-  "message": "what should i do first?",
-  "tone": "genz"
-}
-```
+`POST /chat` accepts a `message` and a `tone` field (genz, direct, or practical) and returns an AI reply.
 
 ## Environment Variables
 
-### Backend (`backend/.env`)
+**Backend** — create `backend/.env` with:
 
-Required:
+```
+GROQ_API_KEY=your_groq_key
+FRONTEND_ORIGIN=https://your-vercel-app.vercel.app
+```
 
-- `GROQ_API_KEY=your_groq_key`
+**Frontend** — set this in your Vercel project environment variables:
 
-Optional:
+```
+NEXT_PUBLIC_API_BASE_URL=https://your-render-backend.onrender.com
+```
 
-- `FRONTEND_ORIGIN=https://your-frontend-domain.vercel.app`
+Locally the frontend falls back to `http://localhost:8000` automatically.
 
-### Frontend (Vercel project env)
+## Running Locally
 
-Required for production:
-
-- `NEXT_PUBLIC_API_BASE_URL=https://your-backend-domain`
-
-Local fallback is `http://localhost:8000`.
-
-## Run Locally
-
-### 1. Backend
+Start the backend:
 
 ```bash
 cd backend
@@ -175,9 +74,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-Open docs: `http://localhost:8000/docs`
-
-### 2. Frontend
+Start the frontend:
 
 ```bash
 cd frontend
@@ -185,52 +82,32 @@ npm install
 npm run dev
 ```
 
-Frontend runs on: `http://localhost:3003`
+Frontend runs at `http://localhost:3003` and the backend API docs are at `http://localhost:8000/docs`.
 
-## Deployment Guide
+## Deployment
 
-### Backend (Render or Railway)
+The repo includes a `render.yaml` that handles the Render configuration automatically. Just connect the repo in Render and it will use the right root directory, build command, and start command.
 
-- Root directory: `backend`
-- Build command: `pip install -r requirements.txt`
-- Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-- Env vars:
-  - `GROQ_API_KEY`
-  - `FRONTEND_ORIGIN` (your frontend URL)
+For Vercel, set the root directory to `frontend` and add the `NEXT_PUBLIC_API_BASE_URL` environment variable pointing to your Render backend URL. Everything else is picked up automatically.
 
-### Frontend (Vercel)
+## Deployment Errors We Hit
 
-- Root directory: `frontend`
-- Framework preset: Next.js
-- Env var:
-  - `NEXT_PUBLIC_API_BASE_URL=https://your-backend-domain`
+Getting this to work on Vercel and Render took some debugging. Here are the actual things that broke and how we fixed them, in case you run into the same issues.
 
-## Validation Checklist
+**The backend was unreachable from the outside world.** When we first deployed to Render, every request timed out. The problem was that Uvicorn was starting with the default host binding, which is `127.0.0.1`. That means it only listens on localhost inside the container and Render cannot route external traffic to it. The fix is to always start with `--host 0.0.0.0 --port $PORT`. Render assigns the port dynamically through the `$PORT` environment variable, so hardcoding `8000` also silently breaks things.
 
-- `http://localhost:8000/docs` opens
-- Upload PDF returns parsed JSON
-- Paste text mode returns parsed JSON
-- Dashboard shows assignments and risk levels
-- Chat replies successfully
-- Calendar adds manual tasks
-- Chat quick-add command updates calendar
-- ICS file downloads correctly
+**The frontend threw an error the moment it loaded on Vercel.** The API base URL logic checks if you are on a non-localhost hostname and throws if `NEXT_PUBLIC_API_BASE_URL` is not set. We had not added that variable to the Vercel project settings yet, so the app crashed on every page load before any user action. Once we set it in Vercel under Settings > Environment Variables and redeployed, it went away.
+
+**The backend crashed immediately on Render even though it looked deployed.** The `GROQ_API_KEY` check runs at module import time, meaning the whole process exits with a runtime error if the key is missing. Since the `.env` file is gitignored and never pushed, Render had no key at all. We set `GROQ_API_KEY` directly in the Render environment variables dashboard and restarted the service.
+
+**CORS was blocking every request from the frontend.** Even after the above fixes, browser requests were getting blocked. The backend only allows origins listed in `FRONTEND_ORIGIN` plus a regex that matches `*.vercel.app`. We had not set `FRONTEND_ORIGIN` on Render, so requests from any custom domain or preview URL outside that regex were rejected. Setting `FRONTEND_ORIGIN` to the exact Vercel URL fixed it.
+
+**Render spins down free tier services after inactivity.** The first request after the service sleeps takes 30 to 60 seconds and usually times out in the browser. We added a `pingBackend` call that fires silently when the chat component mounts, so by the time the user actually sends a message the backend is already awake.
 
 ## Known Limitations
 
-- OCR is not implemented for fully image-based scanned PDFs.
-- Browser localStorage is device/browser-specific.
-- AI extraction quality depends on syllabus formatting and text quality.
+Scanned or image-only PDFs will not work because there is no OCR layer. Everything is stored in localStorage so it is device and browser specific. AI extraction quality depends on how well formatted the original syllabus is.
 
-## Security Notes
+## Security
 
-- Never commit API keys.
-- If a key was exposed during testing, revoke and rotate it immediately.
-
-## Hackathon Summary
-
-SyllabAI demonstrates a full pipeline:
-
-`PDF/Text -> Parser -> LLM Structuring -> Risk Scoring -> Planner UI -> Calendar Export`
-
-It combines practical student workflow design with production-style API and frontend integration.
+Never commit your Groq API key. If a key was accidentally exposed, revoke it immediately in the Groq dashboard and generate a new one.
