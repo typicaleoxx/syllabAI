@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Tone } from "@/lib/tone";
 import { addCalendarTask } from "@/lib/storage";
-import { getApiBaseUrl } from "@/lib/api";
+import { getApiBaseUrl, pingBackend } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -71,6 +71,10 @@ export default function Chat({ tone }: Props) {
   };
 
   useEffect(() => {
+    pingBackend();
+  }, []);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
@@ -116,7 +120,7 @@ export default function Chat({ tone }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: input,
-          tone: tone === "genz" ? "genz" : "normal",
+          tone,
         }),
       });
 
@@ -187,7 +191,7 @@ export default function Chat({ tone }: Props) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSend()}
+          onKeyDown={(e) => e.key === "Enter" && handleSend()}
           placeholder={
             tone === "genz" ? "ask me anything bro..." : "Ask something..."
           }
